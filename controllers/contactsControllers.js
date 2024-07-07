@@ -15,7 +15,7 @@ const getAllContacts = async (req, res) => {
   });
 };
 
-const getOneContact = async (req, res, next) => {
+const getOneContact = async (req, res) => {
   const { id } = req.params;
 
   const data = await services.getContactById(id);
@@ -29,7 +29,7 @@ const getOneContact = async (req, res, next) => {
   });
 };
 
-const deleteContact = async (req, res, next) => {
+const deleteContact = async (req, res) => {
   const { id } = req.params;
 
   const data = await services.removeContact(id);
@@ -43,7 +43,7 @@ const deleteContact = async (req, res, next) => {
   });
 };
 
-const createContact = async (req, res, next) => {
+const createContact = async (req, res) => {
   const { name, email, phone } = req.body;
 
   await schemas.createContactSchema.validateAsync({
@@ -63,7 +63,7 @@ const createContact = async (req, res, next) => {
   });
 };
 
-const updateContact = async (req, res, next) => {
+const updateContact = async (req, res) => {
   const { id } = req.params;
   const { name, email, phone } = req.body;
 
