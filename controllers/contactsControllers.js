@@ -16,9 +16,9 @@ const getAllContacts = async (req, res) => {
 };
 
 const getOneContact = async (req, res) => {
-  const { id } = req.params;
+  const { id: _id } = req.params;
 
-  const data = await services.getContactById(id);
+  const data = await services.getContactById({ _id });
 
   if (!data) throw httpError(404, "Not found");
 
