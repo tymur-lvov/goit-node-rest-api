@@ -1,23 +1,10 @@
-import express from "express";
-import morgan from "morgan";
-import cors from "cors";
+import initMongodbConnection from "./db/initMongodbConnection.js";
+import startServer from "./server.js";
 
-import contactsRouter from "./routes/contactsRouter.js";
-import notFoundHandler from "./middlewares/notFoundHandler.js";
-import errorHandler from "./middlewares/errorHandler.js";
+const bootstrap = async () => {
+  await initMongodbConnection();
 
-const app = express();
+  startServer();
+};
 
-app.use(morgan("tiny"));
-app.use(cors());
-app.use(express.json());
-
-app.use("/api/contacts", contactsRouter);
-
-app.use(notFoundHandler);
-
-app.use(errorHandler);
-
-app.listen(3000, () => {
-  console.log("Server is running. Use our API on port: 3000");
-});
+bootstrap();
