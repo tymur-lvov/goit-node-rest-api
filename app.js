@@ -3,7 +3,6 @@ import startServer from "./server.js";
 
 const bootstrap = async () => {
   await initMongodbConnection();
-
   startServer();
 };
 
