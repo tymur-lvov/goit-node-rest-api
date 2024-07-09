@@ -30,9 +30,9 @@ const getOneContact = async (req, res) => {
 };
 
 const deleteContact = async (req, res) => {
-  const { id } = req.params;
+  const { id: _id } = req.params;
 
-  const data = await services.removeContact(id);
+  const data = await services.removeContact({ _id });
 
   if (!data) throw httpError(404, "Not found");
 
@@ -52,7 +52,7 @@ const createContact = async (req, res) => {
     phone,
   });
 
-  const data = await services.addContact(name, email, phone);
+  const data = await services.addContact(req.body);
 
   if (!data) throw httpError(404, "Not found");
 
