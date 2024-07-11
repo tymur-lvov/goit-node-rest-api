@@ -10,10 +10,15 @@ const addContact = (body) => Contact.create(body);
 
 const updateContact = (filter, body) => Contact.findOneAndUpdate(filter, body);
 
+const updateStatusContact = (filter, body) => {
+  return Contact.findOneAndUpdate(filter, body);
+};
+
 export {
   listContacts,
   getContactById,
   removeContact,
   addContact,
   updateContact,
+  updateStatusContact,
 };

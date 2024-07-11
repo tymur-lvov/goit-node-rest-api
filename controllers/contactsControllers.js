@@ -64,7 +64,7 @@ const createContact = async (req, res) => {
 };
 
 const updateContact = async (req, res) => {
-  const { id } = req.params;
+  const { id: _id } = req.params;
   const { name, email, phone } = req.body;
 
   if (Object.keys(req.body).length === 0) {
@@ -73,7 +73,27 @@ const updateContact = async (req, res) => {
 
   await schemas.updateContactSchema.validateAsync({ name, email, phone });
 
-  const data = await services.updateContact(id, name, email, phone);
+  const data = await services.updateContact({ _id }, req.body);
+
+  if (!data) throw httpError(404, "Not found");
+
+  res.json({
+    code: 200,
+    message: "success",
+    data,
+  });
+};
+
+const patchContact = async (req, res) => {
+  const { id: _id } = req.params;
+  const { name, email, phone } = req.body;
+
+  if (Object.keys(req.body).length === 0) {
+    throw httpError(400, "Body must have at least one field");
+  }
+  await schemas.updateContactSchema.validateAsync({ name, email, phone });
+
+  const data = await services.updateStatusContact({ _id }, req.body);
 
   if (!data) throw httpError(404, "Not found");
 
@@ -90,4 +110,5 @@ export default {
   deleteContact: controllerDecorator(deleteContact),
   createContact: controllerDecorator(createContact),
   updateContact: controllerDecorator(updateContact),
+  patchContact: controllerDecorator(patchContact),
 };
