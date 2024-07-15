@@ -18,12 +18,18 @@ const contactSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    owner: {
+      type: Schema.Types.ObjectId,
+      ref: "user",
+    },
   },
-  { versionKey: false, timestamps: true },
+  { versionKey: false, timestamps: true }
 );
 
 contactSchema.post("save", mongoSaveError);
+
 contactSchema.pre("findOneAndUpdate", setMongoUpdateSettings);
+
 contactSchema.post("findOneAndUpdate", mongoSaveError);
 
 const Contact = model("contact", contactSchema);
