@@ -11,12 +11,17 @@ import {
 const authRouter = express.Router();
 
 authRouter.post(
-  '/signup',
+  '/register',
   isEmptyBody,
   validateBody(authSignupSchema),
   authControllers.signup
 );
 
-authRouter.post('/signin', isEmptyBody, validateBody(authSigninSchema));
+authRouter.post(
+  '/login',
+  isEmptyBody,
+  validateBody(authSigninSchema),
+  authControllers.signin
+);
 
 export default authRouter;
