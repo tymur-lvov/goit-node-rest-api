@@ -15,7 +15,7 @@ const startServer = () => {
   app.use(express.json());
 
   app.use('/api/contacts', contactsRouter);
-  app.use('/api/auth', authRouter);
+  app.use('/api/users', authRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
