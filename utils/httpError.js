@@ -8,8 +8,11 @@ const messageList = {
 
 const httpError = (status, message = messageList[status]) => {
   const error = new Error(message);
+
   error.status = status;
-  error.message = message;
+  error.message = error.message.replace(/"/g, '');
+  console.log(error);
+
   return error;
 };
 
