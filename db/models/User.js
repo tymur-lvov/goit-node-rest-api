@@ -1,37 +1,39 @@
-import { Schema, model } from "mongoose";
+import { Schema, model } from 'mongoose';
 
-import { mongoSaveError, setMongoUpdateSettings } from "./hooks.js";
+import { mongoSaveError, setMongoUpdateSettings } from './hooks.js';
 
 const userSchema = new Schema(
   {
     password: {
       type: String,
-      required: [true, "Password is required"],
+      required: [true, 'Password is required'],
     },
     email: {
       type: String,
-      required: [true, "Email is required"],
+      required: [true, 'Email is required'],
       unique: true,
     },
     subscription: {
       type: String,
-      enum: ["starter", "pro", "business"],
-      default: "starter",
+      enum: ['starter', 'pro', 'business'],
+      default: 'starter',
     },
-    token: {
+    accessToken: {
       type: String,
-      default: null,
+    },
+    refreshToken: {
+      type: String,
     },
   },
   { versionKey: false, timestamps: true }
 );
 
-userSchema.post("save", mongoSaveError);
+userSchema.post('save', mongoSaveError);
 
-userSchema.pre("findOneAndUpdate", setMongoUpdateSettings);
+userSchema.pre('findOneAndUpdate', setMongoUpdateSettings);
 
-userSchema.post("findOneAndUpdate", mongoSaveError);
+userSchema.post('findOneAndUpdate', mongoSaveError);
 
-const User = model("user", userSchema);
+const User = model('user', userSchema);
 
 export default User;

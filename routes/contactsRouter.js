@@ -5,8 +5,11 @@ import isEmptyBody from '../middlewares/isEmptyBody.js';
 import validateBody from '../decorators/validateBody.js';
 import controllers from '../controllers/contactsControllers.js';
 import { createContactSchema } from '../validation/contactsSchemas.js';
+import authenticate from '../middlewares/authinticate.js';
 
 const contactsRouter = express.Router();
+
+contactsRouter.use(authenticate);
 
 contactsRouter.get('/', controllers.getAllContacts);
 
