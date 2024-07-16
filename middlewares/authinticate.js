@@ -27,9 +27,9 @@ const authenticate = async (req, res, next) => {
       return next(httpError(401, 'User not found'));
     }
 
-    // if (!user.accessToken) {
-    //   return next(httpError(401, 'User already signout'));
-    // }
+    if (!user.accessToken) {
+      return next(httpError(401, 'User already signout'));
+    }
 
     req.user = user;
 

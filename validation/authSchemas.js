@@ -10,3 +10,7 @@ export const authSigninSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().min(6).required(),
 });
+
+export const authRefreshTokenSchema = Joi.object({
+  refreshToken: Joi.string().required(),
+});
