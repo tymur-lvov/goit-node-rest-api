@@ -41,11 +41,10 @@ const signin = async (req, res) => {
 
   const passwordCompare = await bcrypt.compare(password, user.password);
   if (!passwordCompare) {
-    throw httpError(401, 'Email or password invalid');
+    throw httpError(401, 'Email or password is wrong');
   }
 
   const { _id: id } = user;
-
   const payload = { id };
 
   const acccessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
