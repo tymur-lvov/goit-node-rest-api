@@ -6,6 +6,7 @@ import validateBody from '../decorators/validateBody.js';
 import controllers from '../controllers/contactsControllers.js';
 import { createContactSchema } from '../validation/contactsSchemas.js';
 import authenticate from '../middlewares/authinticate.js';
+import upload from '../middlewares/upload.js';
 
 const contactsRouter = express.Router();
 
@@ -14,6 +15,12 @@ contactsRouter.use(authenticate);
 contactsRouter.get('/', controllers.getAllContacts);
 
 contactsRouter.get('/:id', isValidId, controllers.getOneContact);
+
+contactsRouter.post(
+  '/upload',
+  upload.single('picture'),
+  controllers.uploadAvatar
+);
 
 contactsRouter.delete('/:id', isValidId, controllers.deleteContact);
 

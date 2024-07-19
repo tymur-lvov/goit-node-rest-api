@@ -1,7 +1,12 @@
+import fs from 'fs/promises';
+import path from 'node:path';
+
 import httpError from '../utils/httpError.js';
 import controllerDecorator from '../decorators/controllerDecorator.js';
 import * as schemas from '../validation/contactsSchemas.js';
 import * as services from '../services/contactsservices.js';
+
+const avatarsPath = path.resolve('public', 'avatars');
 
 const getAllContacts = async (req, res) => {
   const data = await services.listContacts();
@@ -27,6 +32,28 @@ const getOneContact = async (req, res) => {
     message: 'success',
     data,
   });
+};
+
+const uploadAvatar = async (req, res, next) => {
+  try {
+    const { path: oldPath, filename } = req.file;
+    const newPath = path.join(avatarsPath, filename);
+
+    await fs.rename(oldPath, newPath);
+
+    // const avatar = path.join('avatars', filename);
+    // const { _id: owner } = req.user;
+    // const data = await services.addSong({ ...req.body, avatar, owner });
+
+    res.status(201).json({
+      status: 201,
+      message: `Avatar upload successfull`,
+      // data,
+    });
+  } catch (error) {
+    // await fs.unlink(req.file.path);
+    throw error;
+  }
 };
 
 const deleteContact = async (req, res) => {
@@ -111,4 +138,5 @@ export default {
   createContact: controllerDecorator(createContact),
   updateContact: controllerDecorator(updateContact),
   patchContact: controllerDecorator(patchContact),
+  uploadAvatar,
 };
