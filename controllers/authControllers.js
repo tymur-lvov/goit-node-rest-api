@@ -7,6 +7,8 @@ import path from 'node:path';
 import * as services from '../services/authServices.js';
 import controllerDecorator from '../decorators/controllerDecorator.js';
 import httpError from '../utils/httpError.js';
+import { log } from 'node:console';
+import resizeAvatar from '../middlewares/resizeAvatar.js';
 
 const { JWT_SECRET } = process.env;
 
@@ -57,7 +59,7 @@ const signin = async (req, res) => {
   const { _id: id } = user;
   const payload = { id };
 
-  const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
+  const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
   const refreshToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
 
   await services.updateUser({ _id: id }, { accessToken, refreshToken });
@@ -76,12 +78,14 @@ const signin = async (req, res) => {
 
 const updateAvatar = async (req, res, next) => {
   try {
+    const avatar = await resizeAvatar(req.file);
+
     const { path: oldPath, filename } = req.file;
     const newPath = path.join(avatarsPath, filename);
 
     await fs.rename(oldPath, newPath);
 
-    const avatarURL = path.join('avatars', filename);
+    const avatarURL = path.join('avatars', req.file.filename);
     const { _id: owner } = req.user;
     const data = await services.updateUser(owner, { avatarURL });
 
@@ -92,8 +96,6 @@ const updateAvatar = async (req, res, next) => {
       },
     });
   } catch (error) {
-    await fs.unlink(req.file.path);
-
     throw error;
   }
 };
@@ -116,7 +118,7 @@ const refresh = async (req, res) => {
     const { id } = jwt.verify(token, JWT_SECRET);
 
     const payload = { id };
-    const acccessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
+    const acccessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
     const refreshToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
 
     res.json({
