@@ -1,5 +1,8 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import gravatar from 'gravatar';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 
 import * as services from '../services/authServices.js';
 import controllerDecorator from '../decorators/controllerDecorator.js';
@@ -7,24 +10,29 @@ import httpError from '../utils/httpError.js';
 
 const { JWT_SECRET } = process.env;
 
+const avatarsPath = path.resolve('public', 'avatars');
+
 const signup = async (req, res) => {
   const { email, password } = req.body;
   const user = await services.findUser({ email });
+
   if (user) {
     throw httpError(409, 'Email in use');
   }
 
+  const avatarURL = gravatar.url(email);
   const hashPassword = await bcrypt.hash(password, 10);
   const newUser = await services.signup({
     ...req.body,
+    avatarURL,
     password: hashPassword,
   });
 
   res.status(201).json({
     Status: '201 Created',
-    'Content-Type': 'application/json',
     ResponseBody: {
       user: {
+        avatarURL,
         email,
         subscription: 'starter',
       },
@@ -56,7 +64,6 @@ const signin = async (req, res) => {
 
   res.json({
     Status: '200 OK',
-    'Content-Type': 'application/json',
     ResponseBody: {
       token: accessToken,
       user: {
@@ -67,12 +74,35 @@ const signin = async (req, res) => {
   });
 };
 
+const updateAvatar = async (req, res, next) => {
+  try {
+    const { path: oldPath, filename } = req.file;
+    const newPath = path.join(avatarsPath, filename);
+
+    await fs.rename(oldPath, newPath);
+
+    const avatarURL = path.join('avatars', filename);
+    const { _id: owner } = req.user;
+    const data = await services.updateUser(owner, { avatarURL });
+
+    res.json({
+      Status: '200 OK',
+      ResponseBody: {
+        avatarURL,
+      },
+    });
+  } catch (error) {
+    await fs.unlink(req.file.path);
+
+    throw error;
+  }
+};
+
 const getCurrent = async (req, res) => {
   const { username, email, subscription } = req.user;
 
   res.json({
     Status: '200 OK',
-    'Content-Type': 'application/json',
     ResponseBody: {
       email,
       subscription,
@@ -115,4 +145,5 @@ export default {
   getCurrent: controllerDecorator(getCurrent),
   refresh: controllerDecorator(refresh),
   signout: controllerDecorator(signout),
+  updateAvatar,
 };

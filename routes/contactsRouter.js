@@ -16,12 +16,6 @@ contactsRouter.get('/', controllers.getAllContacts);
 
 contactsRouter.get('/:id', isValidId, controllers.getOneContact);
 
-contactsRouter.post(
-  '/upload',
-  upload.single('picture'),
-  controllers.uploadAvatar
-);
-
 contactsRouter.delete('/:id', isValidId, controllers.deleteContact);
 
 contactsRouter.put('/:id', isValidId, isEmptyBody, controllers.updateContact);

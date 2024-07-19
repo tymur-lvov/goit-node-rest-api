@@ -4,6 +4,9 @@ import { mongoSaveError, setMongoUpdateSettings } from './hooks.js';
 
 const userSchema = new Schema(
   {
+    avatarURL: {
+      type: String,
+    },
     password: {
       type: String,
       required: [true, 'Password is required'],
