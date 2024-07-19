@@ -6,6 +6,7 @@ import validateBody from '../decorators/validateBody.js';
 import controllers from '../controllers/contactsControllers.js';
 import { createContactSchema } from '../validation/contactsSchemas.js';
 import authenticate from '../middlewares/authinticate.js';
+import upload from '../middlewares/upload.js';
 
 const contactsRouter = express.Router();
 

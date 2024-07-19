@@ -1,30 +1,40 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import gravatar from 'gravatar';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 
 import * as services from '../services/authServices.js';
 import controllerDecorator from '../decorators/controllerDecorator.js';
 import httpError from '../utils/httpError.js';
+import { log } from 'node:console';
+import resizeAvatar from '../middlewares/resizeAvatar.js';
 
 const { JWT_SECRET } = process.env;
+
+const avatarsPath = path.resolve('public', 'avatars');
 
 const signup = async (req, res) => {
   const { email, password } = req.body;
   const user = await services.findUser({ email });
+
   if (user) {
     throw httpError(409, 'Email in use');
   }
 
+  const avatarURL = gravatar.url(email);
   const hashPassword = await bcrypt.hash(password, 10);
   const newUser = await services.signup({
     ...req.body,
+    avatarURL,
     password: hashPassword,
   });
 
   res.status(201).json({
     Status: '201 Created',
-    'Content-Type': 'application/json',
     ResponseBody: {
       user: {
+        avatarURL,
         email,
         subscription: 'starter',
       },
@@ -49,14 +59,13 @@ const signin = async (req, res) => {
   const { _id: id } = user;
   const payload = { id };
 
-  const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
+  const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
   const refreshToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
 
   await services.updateUser({ _id: id }, { accessToken, refreshToken });
 
   res.json({
     Status: '200 OK',
-    'Content-Type': 'application/json',
     ResponseBody: {
       token: accessToken,
       user: {
@@ -67,12 +76,35 @@ const signin = async (req, res) => {
   });
 };
 
+const updateAvatar = async (req, res, next) => {
+  try {
+    const avatar = await resizeAvatar(req.file);
+
+    const { path: oldPath, filename } = req.file;
+    const newPath = path.join(avatarsPath, filename);
+
+    await fs.rename(oldPath, newPath);
+
+    const avatarURL = path.join('avatars', req.file.filename);
+    const { _id: owner } = req.user;
+    const data = await services.updateUser(owner, { avatarURL });
+
+    res.json({
+      Status: '200 OK',
+      ResponseBody: {
+        avatarURL,
+      },
+    });
+  } catch (error) {
+    throw error;
+  }
+};
+
 const getCurrent = async (req, res) => {
   const { username, email, subscription } = req.user;
 
   res.json({
     Status: '200 OK',
-    'Content-Type': 'application/json',
     ResponseBody: {
       email,
       subscription,
@@ -86,7 +118,7 @@ const refresh = async (req, res) => {
     const { id } = jwt.verify(token, JWT_SECRET);
 
     const payload = { id };
-    const acccessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
+    const acccessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
     const refreshToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
 
     res.json({
@@ -115,4 +147,5 @@ export default {
   getCurrent: controllerDecorator(getCurrent),
   refresh: controllerDecorator(refresh),
   signout: controllerDecorator(signout),
+  updateAvatar,
 };

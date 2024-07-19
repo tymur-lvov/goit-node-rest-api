@@ -1,9 +1,10 @@
 import express from 'express';
 
 import isEmptyBody from '../middlewares/isEmptyBody.js';
-import validateBody from '../decorators/validateBody.js';
-import authControllers from '../controllers/authControllers.js';
+import upload from '../middlewares/upload.js';
 import authenticate from '../middlewares/authinticate.js';
+import authControllers from '../controllers/authControllers.js';
+import validateBody from '../decorators/validateBody.js';
 import {
   authSignupSchema,
   authSigninSchema,
@@ -24,6 +25,13 @@ authRouter.post(
   isEmptyBody,
   validateBody(authSigninSchema),
   authControllers.signin
+);
+
+authRouter.patch(
+  '/avatars',
+  authenticate,
+  upload.single('avatar'),
+  authControllers.updateAvatar
 );
 
 authRouter.get('/current', authenticate, authControllers.getCurrent);
