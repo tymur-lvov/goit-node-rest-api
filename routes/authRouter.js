@@ -13,6 +13,8 @@ import {
 
 const authRouter = express.Router();
 
+authRouter.get('/verify/:verificationToken', authControllers.verify);
+
 authRouter.post(
   '/register',
   isEmptyBody,

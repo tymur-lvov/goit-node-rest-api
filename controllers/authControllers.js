@@ -7,15 +7,39 @@ import path from 'node:path';
 import * as services from '../services/authServices.js';
 import controllerDecorator from '../decorators/controllerDecorator.js';
 import httpError from '../utils/httpError.js';
-import { log } from 'node:console';
 import resizeAvatar from '../middlewares/resizeAvatar.js';
+import { nanoid } from 'nanoid';
 
 const { JWT_SECRET } = process.env;
-
 const avatarsPath = path.resolve('public', 'avatars');
+
+const verify = async (req, res) => {
+  const { verificationToken } = req.params;
+  const user = await services.findUser({ verificationToken });
+
+  if (!user) {
+    throw httpError(404, 'User not found');
+  }
+
+  await services.updateUser(
+    { _id: user.id },
+    {
+      verificationToken: null,
+      verify: true,
+    }
+  );
+
+  res.json({
+    Status: '200 OK',
+    ResponseBody: {
+      message: 'Verification successfull',
+    },
+  });
+};
 
 const signup = async (req, res) => {
   const { email, password } = req.body;
+  const verificationToken = nanoid();
   const user = await services.findUser({ email });
 
   if (user) {
@@ -28,6 +52,7 @@ const signup = async (req, res) => {
     ...req.body,
     avatarURL,
     password: hashPassword,
+    verificationToken,
   });
 
   res.status(201).json({
@@ -142,6 +167,7 @@ const signout = async (req, res) => {
 };
 
 export default {
+  verify: controllerDecorator(verify),
   signup: controllerDecorator(signup),
   signin: controllerDecorator(signin),
   getCurrent: controllerDecorator(getCurrent),
