@@ -9,11 +9,22 @@ import {
   authSignupSchema,
   authSigninSchema,
   authRefreshTokenSchema,
+  verificationSchema,
 } from '../validation/authSchemas.js';
 
 const authRouter = express.Router();
 
-authRouter.get('/verify/:verificationToken', authControllers.verify);
+authRouter.get(
+  '/verify/:verificationToken',
+  authControllers.verify,
+  authControllers.verify
+);
+
+authRouter.post(
+  '/verify/',
+  validateBody(verificationSchema),
+  authControllers.resendVerify
+);
 
 authRouter.post(
   '/register',

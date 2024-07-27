@@ -76,6 +76,30 @@ const signup = async (req, res) => {
   });
 };
 
+const resendVerify = async (req, res) => {
+  const { email } = req.body;
+  const user = await services.findUser({ email });
+
+  if (!user) {
+    throw httpError(404, 'Email not found');
+  }
+  if (user.verify) {
+    throw httpError(400, 'Verification has already been passed');
+  }
+
+  const verifyEmail = {
+    to: email,
+    subject: 'Please verify your email',
+    html: `<a target="_blank" href="${BASE_URL}/api/users/verify/${user.verificationToken}">Click here to verify your email</a>`,
+  };
+
+  await sendEmail(verifyEmail);
+
+  res.json({
+    message: 'Verify email resend successfully',
+  });
+};
+
 const signin = async (req, res) => {
   const { email, password } = req.body;
   const user = await services.findUser({ email });
@@ -181,6 +205,7 @@ const signout = async (req, res) => {
 
 export default {
   verify: controllerDecorator(verify),
+  resendVerify: controllerDecorator(resendVerify),
   signup: controllerDecorator(signup),
   signin: controllerDecorator(signin),
   getCurrent: controllerDecorator(getCurrent),
