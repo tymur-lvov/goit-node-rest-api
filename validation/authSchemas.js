@@ -1,5 +1,9 @@
 import Joi from 'joi';
 
+export const verificationSchema = Joi.object({
+  email: Joi.string().min(6).required(),
+});
+
 export const authSignupSchema = Joi.object({
   username: Joi.string().required(),
   email: Joi.string().email().required(),

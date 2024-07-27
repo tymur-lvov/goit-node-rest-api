@@ -7,15 +7,40 @@ import path from 'node:path';
 import * as services from '../services/authServices.js';
 import controllerDecorator from '../decorators/controllerDecorator.js';
 import httpError from '../utils/httpError.js';
-import { log } from 'node:console';
 import resizeAvatar from '../middlewares/resizeAvatar.js';
+import { nanoid } from 'nanoid';
+import sendEmail from '../utils/sendEmail.js';
 
-const { JWT_SECRET } = process.env;
-
+const { JWT_SECRET, BASE_URL } = process.env;
 const avatarsPath = path.resolve('public', 'avatars');
+
+const verify = async (req, res) => {
+  const { verificationToken } = req.params;
+  const user = await services.findUser({ verificationToken });
+
+  if (!user) {
+    throw httpError(404, 'User not found');
+  }
+
+  await services.updateUser(
+    { _id: user.id },
+    {
+      verificationToken: null,
+      verify: true,
+    }
+  );
+
+  res.json({
+    Status: '200 OK',
+    ResponseBody: {
+      message: 'Verification successfull',
+    },
+  });
+};
 
 const signup = async (req, res) => {
   const { email, password } = req.body;
+  const verificationToken = nanoid();
   const user = await services.findUser({ email });
 
   if (user) {
@@ -28,7 +53,16 @@ const signup = async (req, res) => {
     ...req.body,
     avatarURL,
     password: hashPassword,
+    verificationToken,
   });
+
+  const verifyEmail = {
+    to: email,
+    subject: 'Please verify your email',
+    html: `<a target="_blank" href="${BASE_URL}/api/users/verify/${verificationToken}">Click here to verify your email</a>`,
+  };
+
+  sendEmail(verifyEmail);
 
   res.status(201).json({
     Status: '201 Created',
@@ -42,12 +76,40 @@ const signup = async (req, res) => {
   });
 };
 
+const resendVerify = async (req, res) => {
+  const { email } = req.body;
+  const user = await services.findUser({ email });
+
+  if (!user) {
+    throw httpError(404, 'Email not found');
+  }
+  if (user.verify) {
+    throw httpError(400, 'Verification has already been passed');
+  }
+
+  const verifyEmail = {
+    to: email,
+    subject: 'Please verify your email',
+    html: `<a target="_blank" href="${BASE_URL}/api/users/verify/${user.verificationToken}">Click here to verify your email</a>`,
+  };
+
+  await sendEmail(verifyEmail);
+
+  res.json({
+    message: 'Verify email resend successfully',
+  });
+};
+
 const signin = async (req, res) => {
   const { email, password } = req.body;
   const user = await services.findUser({ email });
 
   if (!user) {
     throw httpError(401, 'Email or password is wrong');
+  }
+
+  if (!user.verify) {
+    throw httpError(401, 'Email verification is required');
   }
 
   const passwordCompare = await bcrypt.compare(password, user.password);
@@ -142,6 +204,8 @@ const signout = async (req, res) => {
 };
 
 export default {
+  verify: controllerDecorator(verify),
+  resendVerify: controllerDecorator(resendVerify),
   signup: controllerDecorator(signup),
   signin: controllerDecorator(signin),
   getCurrent: controllerDecorator(getCurrent),
