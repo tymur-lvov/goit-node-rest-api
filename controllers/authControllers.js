@@ -9,8 +9,9 @@ import controllerDecorator from '../decorators/controllerDecorator.js';
 import httpError from '../utils/httpError.js';
 import resizeAvatar from '../middlewares/resizeAvatar.js';
 import { nanoid } from 'nanoid';
+import sendEmail from '../utils/sendEmail.js';
 
-const { JWT_SECRET } = process.env;
+const { JWT_SECRET, BASE_URL } = process.env;
 const avatarsPath = path.resolve('public', 'avatars');
 
 const verify = async (req, res) => {
@@ -55,6 +56,14 @@ const signup = async (req, res) => {
     verificationToken,
   });
 
+  const verifyEmail = {
+    to: email,
+    subject: 'Please verify your email',
+    html: `<a target="_blank" href="${BASE_URL}/api/users/verify/${verificationToken}">Click here to verify your email</a>`,
+  };
+
+  sendEmail(verifyEmail);
+
   res.status(201).json({
     Status: '201 Created',
     ResponseBody: {
@@ -73,6 +82,10 @@ const signin = async (req, res) => {
 
   if (!user) {
     throw httpError(401, 'Email or password is wrong');
+  }
+
+  if (!user.verify) {
+    throw httpError(401, 'Email verification is required');
   }
 
   const passwordCompare = await bcrypt.compare(password, user.password);
