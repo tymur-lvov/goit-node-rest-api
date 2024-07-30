@@ -3,12 +3,12 @@ import jwt from 'jsonwebtoken';
 import gravatar from 'gravatar';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-
-import * as services from '../services/authServices.js';
-import controllerDecorator from '../decorators/controllerDecorator.js';
-import httpError from '../utils/httpError.js';
-import resizeAvatar from '../middlewares/resizeAvatar.js';
 import { nanoid } from 'nanoid';
+
+import controllerDecorator from '../decorators/controllerDecorator.js';
+import resizeAvatar from '../middlewares/resizeAvatar.js';
+import * as services from '../services/authServices.js';
+import httpError from '../utils/httpError.js';
 import sendEmail from '../utils/sendEmail.js';
 
 const { JWT_SECRET, BASE_URL } = process.env;

@@ -2,11 +2,10 @@ import express from 'express';
 
 import isValidId from '../middlewares/isValidId.js';
 import isEmptyBody from '../middlewares/isEmptyBody.js';
-import validateBody from '../decorators/validateBody.js';
-import controllers from '../controllers/contactsControllers.js';
-import { createContactSchema } from '../validation/contactsSchemas.js';
 import authenticate from '../middlewares/authinticate.js';
-import upload from '../middlewares/upload.js';
+import controllers from '../controllers/contactsControllers.js';
+import validateBody from '../decorators/validateBody.js';
+import { createContactSchema } from '../validation/contactsSchemas.js';
 
 const contactsRouter = express.Router();
 
